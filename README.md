@@ -15,36 +15,6 @@
 
 ## Performance  Analysis
 
-From cnn.h we get,
-$$
-kNum = 64
-$$
-
-$$
-kKernel = 4
-$$
-
-$$
-kInImSize = 116
-$$
-
-$$
-kOutImSize = 112
-$$
-
-Total Flops can be calculated by,
-$$
-\text{FLOPS} = kOutImSize \times kOutImSize \times kNum \times kNum \times (kKernel \times kKernel)
-$$
-Therefore,
-$$
-FLOPS = 882,083,584
-$$
-If II=1, it means that, under ideal conditions, each operation in the innermost loop can be initiated every clock cycle. When running on 200MHz,
-$$
-Estimated Cycle = (882,083,584)/(200,000,000) = 4.11s
-$$
-
 
 ### V0
 
@@ -79,14 +49,4 @@ To make sure the II=1, the following optimization methods are used.
 - Perform **complete partitioning** on the `i` dimension (channel dimension) of `local_output` (`#pragma HLS ARRAY_PARTITION complete dim=3`). This means that for every spatial position (h,w)(h, w), all elements in the `i` dimension of `local_output[h][w][i]` are split into independent storage units, enabling simultaneous access to different channels in the same cycle.
 - Perform **complete partitioning** on the `i` dimension  of `local_weight` (`#pragma HLS ARRAY_PARTITION variable=local_weight complete dim=3`). By completely partitioning the weights of the kernel across the channel dimension, multiple channel weight data can be accessed simultaneously in the innermost loop. This removes the limitation of a single memory port, accelerating access and reducing bandwidth constraints.
 - Use the `#pragma HLS PIPELINE II=1` directive in the innermost loop to instruct the tool to initiate a new iteration every clock cycle, thereby achieving **instruction-level parallelism (ILP)**. By combining array partitioning and dual-port memory, the tool has the opportunity to complete multiple data accesses and computations within a single clock cycle, striving to achieve the performance target of **II=1**.
-
-## Chip Layout
-
-### v0
-
-![v0](v0-17343882324641.png)
-
-### v1
-
-![v1](v1.png)
 
